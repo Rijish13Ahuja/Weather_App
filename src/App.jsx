@@ -14,7 +14,9 @@ function App() {
     try {
       const response = await fetch(
         `https://api.weatherapi.com/v1/current.json?key=${key}&q=${city}`
+        
       );
+      console.log(response);
 
       const data = await response.json();
 
@@ -35,7 +37,7 @@ function App() {
         <input type="text" onChange={(e) => setCity(e.target.value)} />
         <button
           type="button"
-          onClick={(e) => {
+          onClick={() => {
             console.log("I was clicked");
             fetchWeather(key, city);
           }}

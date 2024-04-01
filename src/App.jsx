@@ -1,71 +1,88 @@
-import { useState,useEffect } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+/* eslint-disable no-prototype-builtins */
+/* eslint-disable react/prop-types */
+import { useState } from "react";
+import "./App.css";
+
+// https://api.weatherapi.com/v1/current.json?Key=110d3f9df3b94c2bbb742912232811&q=delhi
+/* Temp, Humidity, condition, Wind speed */
+
+const Card = ({ name, value }) => {
+  if (name == "Temperature") {
+    value = `${value}°C`;
+  } else if (name == "Humidity") {
+    value = `${value}%`;
+  } else if (name == "Conditon") {
+    value = `${value}`;
+  } else if (name == "Wind Speed") {
+    value = `${value} kph`;
+  }
+
+  return (
+    <div className="weather-card">
+      <h2>{name}</h2>
+      <p>{value}</p>
+    </div>
+  );
+};
 
 function App() {
-  const key = process.env.REACT_APP_KEY;
-  const [city, setCity] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [weather, setWeather] = useState({});
+  const [search, setSearch] = useState("");
+  const [data, setData] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
-  const fetchWeather = async (key, city) => {
-    setLoading(true);
+  const getData = async (text) => {
     try {
-      const response = await fetch(
-        `https://api.weatherapi.com/v1/current.json?key=${key}&q=${city}`
-        
+      const res = await fetch(
+        `https://api.weatherapi.com/v1/current.json?Key=110d3f9df3b94c2bbb742912232811&q=${text}`
       );
-      console.log(response);
+      const resInJSON = await res.json();
 
-      const data = await response.json();
-
-      if (data.error) {
+      if (!resInJSON.hasOwnProperty("error")) {
+        setData(resInJSON.current);
+        console.log(resInJSON);
+        setIsLoading(false);
+      } else {
         alert("Failed to fetch weather data");
       }
-      setWeather(data);
     } catch (error) {
-      console.error("Failed to fetch weather data");
-    } finally {
-      setLoading(false);
+      console.log(error);
+      alert("Failed to fetch weather data");
     }
   };
 
+  const handleSearch = () => {
+    setIsLoading(true);
+    getData(search);
+  };
+
   return (
-    <div className="App">
-      <div>
-        <input type="text" onChange={(e) => setCity(e.target.value)} />
-        <button
-          type="button"
-          onClick={() => {
-            console.log("I was clicked");
-            fetchWeather(key, city);
-          }}
-        >
-          Search
-        </button>
-      </div>
-      {loading && <p>Loading data...</p>}
-      {!loading && weather.current && Object.keys(weather).length > 0 && (
-        <div className="weather-cards">
-          <div className="weather-card">
-            <h3>Temperature</h3>
-            <p>{weather.current.temp_c}°C</p>
-          </div>
-          <div className="weather-card">
-            <h3>Humidity</h3>
-            <p>{weather.current.humidity}%</p>
-          </div>
-          <div className="weather-card">
-            <h3>Condition</h3>
-            <p>{weather.current.condition.text}</p>
-          </div>
-          <div className="weather-card">
-            <h3>Wind Speed</h3>
-            <p>{weather.current.wind_kph} kph</p>
-          </div>
+    <div className="main__div">
+      <div className="center__div">
+        <div className="search__box">
+          <input
+            type="text"
+            placeholder="Enter city name"
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <button className="search__btn" onClick={handleSearch}>
+            Search
+          </button>
         </div>
-      )}
+        <div className="weather-cards">
+          {/* {isLoading && <p>Loading data…</p>} */}
+
+          {Object.keys(data).length !== 0 ? (
+            <>
+              <Card name="Temperature" value={data.temp_c} />
+              <Card name="Humidity" value={data.humidity} />
+              <Card name="Condition" value={data.condition.text} />
+              <Card name="Wind Speed" value={data.wind_kph} />
+            </>
+          ) : (
+            isLoading && <p>Loading data...</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
